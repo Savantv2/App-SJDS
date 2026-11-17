@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Liga San Juan del Sur",
+  "description": "Plataforma oficial de seguimiento y administración deportiva para la Liga San Juan del Sur: calendario por jornada, marcadores en directo, tabla de posiciones, goleadores, planteles y disciplina.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

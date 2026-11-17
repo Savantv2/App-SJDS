@@ -1,0 +1,980 @@
+{
+  "seedVersion": 2,
+  "isDemoData": true,
+  "competitions": [
+    {
+      "id": "liga-heroes-y-martires",
+      "name": "Liga Héroes y Mártires",
+      "season": "Inicia 1 de diciembre 2026",
+      "category": "16 Clubes · Primera División",
+      "status": "active",
+      "rules": {
+        "maxActivePlayers": 25,
+        "yellowAccumulationLimit": 3,
+        "redCardSuspensionMatches": 2,
+        "registrationOpen": true,
+        "registrationDeadline": "2026-11-30",
+        "pointsWin": 3,
+        "pointsDraw": 1,
+        "pointsLoss": 0
+      }
+    }
+  ],
+  "teams": [
+    {
+      "id": "team-1",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 1",
+      "shortName": "E01",
+      "primaryColor": "#D4AF37",
+      "secondaryColor": "#141418",
+      "motif": "shark",
+      "dtName": "DT Equipo 1",
+      "dtUserId": "user-dt-1",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-2",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 2",
+      "shortName": "E02",
+      "primaryColor": "#0EA5E9",
+      "secondaryColor": "#0B253A",
+      "motif": "wave",
+      "dtName": "DT Equipo 2",
+      "dtUserId": "user-dt-2",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-3",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 3",
+      "shortName": "E03",
+      "primaryColor": "#10B981",
+      "secondaryColor": "#082E22",
+      "motif": "sun",
+      "dtName": "DT Equipo 3",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-4",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 4",
+      "shortName": "E04",
+      "primaryColor": "#F97316",
+      "secondaryColor": "#3B1808",
+      "motif": "flame",
+      "dtName": "DT Equipo 4",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-5",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 5",
+      "shortName": "E05",
+      "primaryColor": "#E11D48",
+      "secondaryColor": "#3B0A19",
+      "motif": "crown",
+      "dtName": "DT Equipo 5",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-6",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 6",
+      "shortName": "E06",
+      "primaryColor": "#8B5CF6",
+      "secondaryColor": "#24124A",
+      "motif": "star",
+      "dtName": "DT Equipo 6",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-7",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 7",
+      "shortName": "E07",
+      "primaryColor": "#EAB308",
+      "secondaryColor": "#2E2305",
+      "motif": "sun",
+      "dtName": "DT Equipo 7",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-8",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 8",
+      "shortName": "E08",
+      "primaryColor": "#06B6D4",
+      "secondaryColor": "#082F3A",
+      "motif": "wave",
+      "dtName": "DT Equipo 8",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-9",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 9",
+      "shortName": "E09",
+      "primaryColor": "#22C55E",
+      "secondaryColor": "#0B2E18",
+      "motif": "star",
+      "dtName": "DT Equipo 9",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-10",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 10",
+      "shortName": "E10",
+      "primaryColor": "#F43F5E",
+      "secondaryColor": "#380914",
+      "motif": "flame",
+      "dtName": "DT Equipo 10",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-11",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 11",
+      "shortName": "E11",
+      "primaryColor": "#3B82F6",
+      "secondaryColor": "#0D1F42",
+      "motif": "shark",
+      "dtName": "DT Equipo 11",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-12",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 12",
+      "shortName": "E12",
+      "primaryColor": "#A855F7",
+      "secondaryColor": "#270F40",
+      "motif": "crown",
+      "dtName": "DT Equipo 12",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-13",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 13",
+      "shortName": "E13",
+      "primaryColor": "#14B8A6",
+      "secondaryColor": "#082E2B",
+      "motif": "wave",
+      "dtName": "DT Equipo 13",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-14",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 14",
+      "shortName": "E14",
+      "primaryColor": "#FB923C",
+      "secondaryColor": "#3D1D07",
+      "motif": "flame",
+      "dtName": "DT Equipo 14",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-15",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 15",
+      "shortName": "E15",
+      "primaryColor": "#EC4899",
+      "secondaryColor": "#3A0A22",
+      "motif": "star",
+      "dtName": "DT Equipo 15",
+      "neighborhood": "San Juan del Sur"
+    },
+    {
+      "id": "team-16",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Equipo 16",
+      "shortName": "E16",
+      "primaryColor": "#D4AF37",
+      "secondaryColor": "#1C1917",
+      "motif": "crown",
+      "dtName": "DT Equipo 16",
+      "neighborhood": "San Juan del Sur"
+    }
+  ],
+  "players": [
+    {
+      "id": "p-t1-d1",
+      "teamId": "team-1",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E01)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t1-d4",
+      "teamId": "team-1",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E01)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t1-d8",
+      "teamId": "team-1",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E01)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t1-d9",
+      "teamId": "team-1",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E01)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t2-d1",
+      "teamId": "team-2",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E02)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t2-d4",
+      "teamId": "team-2",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E02)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t2-d8",
+      "teamId": "team-2",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E02)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t2-d9",
+      "teamId": "team-2",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E02)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t3-d1",
+      "teamId": "team-3",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E03)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t3-d4",
+      "teamId": "team-3",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E03)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t3-d8",
+      "teamId": "team-3",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E03)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t3-d9",
+      "teamId": "team-3",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E03)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t4-d1",
+      "teamId": "team-4",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E04)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t4-d4",
+      "teamId": "team-4",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E04)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t4-d8",
+      "teamId": "team-4",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E04)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t4-d9",
+      "teamId": "team-4",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E04)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t5-d1",
+      "teamId": "team-5",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E05)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t5-d4",
+      "teamId": "team-5",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E05)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t5-d8",
+      "teamId": "team-5",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E05)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t5-d9",
+      "teamId": "team-5",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E05)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t6-d1",
+      "teamId": "team-6",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E06)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t6-d4",
+      "teamId": "team-6",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E06)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t6-d8",
+      "teamId": "team-6",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E06)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t6-d9",
+      "teamId": "team-6",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E06)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t7-d1",
+      "teamId": "team-7",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E07)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t7-d4",
+      "teamId": "team-7",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E07)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t7-d8",
+      "teamId": "team-7",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E07)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t7-d9",
+      "teamId": "team-7",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E07)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t8-d1",
+      "teamId": "team-8",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E08)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t8-d4",
+      "teamId": "team-8",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E08)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t8-d8",
+      "teamId": "team-8",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E08)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t8-d9",
+      "teamId": "team-8",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E08)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t9-d1",
+      "teamId": "team-9",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E09)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t9-d4",
+      "teamId": "team-9",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E09)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t9-d8",
+      "teamId": "team-9",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E09)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t9-d9",
+      "teamId": "team-9",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E09)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t10-d1",
+      "teamId": "team-10",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E10)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t10-d4",
+      "teamId": "team-10",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E10)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t10-d8",
+      "teamId": "team-10",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E10)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t10-d9",
+      "teamId": "team-10",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E10)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t11-d1",
+      "teamId": "team-11",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E11)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t11-d4",
+      "teamId": "team-11",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E11)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t11-d8",
+      "teamId": "team-11",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E11)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t11-d9",
+      "teamId": "team-11",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E11)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t12-d1",
+      "teamId": "team-12",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E12)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t12-d4",
+      "teamId": "team-12",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E12)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t12-d8",
+      "teamId": "team-12",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E12)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t12-d9",
+      "teamId": "team-12",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E12)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t13-d1",
+      "teamId": "team-13",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E13)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t13-d4",
+      "teamId": "team-13",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E13)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t13-d8",
+      "teamId": "team-13",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E13)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t13-d9",
+      "teamId": "team-13",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E13)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t14-d1",
+      "teamId": "team-14",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E14)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t14-d4",
+      "teamId": "team-14",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E14)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t14-d8",
+      "teamId": "team-14",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E14)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t14-d9",
+      "teamId": "team-14",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E14)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t15-d1",
+      "teamId": "team-15",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E15)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t15-d4",
+      "teamId": "team-15",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E15)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t15-d8",
+      "teamId": "team-15",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E15)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t15-d9",
+      "teamId": "team-15",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E15)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t16-d1",
+      "teamId": "team-16",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Portero Titular (E16)",
+      "dorsal": 1,
+      "primaryPosition": "POR",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t16-d4",
+      "teamId": "team-16",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Defensa Central (E16)",
+      "dorsal": 4,
+      "primaryPosition": "DEF",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t16-d8",
+      "teamId": "team-16",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Mediocampista (E16)",
+      "dorsal": 8,
+      "primaryPosition": "MED",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    },
+    {
+      "id": "p-t16-d9",
+      "teamId": "team-16",
+      "competitionId": "liga-heroes-y-martires",
+      "name": "Delantero (E16)",
+      "dorsal": 9,
+      "primaryPosition": "DEL",
+      "status": "active",
+      "joinedAt": "2026-11-16"
+    }
+  ],
+  "matches": [
+    {
+      "id": "m-hym-1",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-1",
+      "awayTeamId": "team-2",
+      "kickoffAt": "2026-12-01T15:30:00-06:00",
+      "venue": "Estadio Municipal SJDS",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-2",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-3",
+      "awayTeamId": "team-4",
+      "kickoffAt": "2026-12-01T17:30:00-06:00",
+      "venue": "Estadio Municipal SJDS",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-3",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-5",
+      "awayTeamId": "team-6",
+      "kickoffAt": "2026-12-01T19:30:00-06:00",
+      "venue": "Estadio Municipal SJDS",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-4",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-7",
+      "awayTeamId": "team-8",
+      "kickoffAt": "2026-12-02T15:30:00-06:00",
+      "venue": "Cancha El Remanso",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-5",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-9",
+      "awayTeamId": "team-10",
+      "kickoffAt": "2026-12-02T17:30:00-06:00",
+      "venue": "Cancha Playa Marsella",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-6",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-11",
+      "awayTeamId": "team-12",
+      "kickoffAt": "2026-12-03T15:30:00-06:00",
+      "venue": "Estadio Municipal SJDS",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-7",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-13",
+      "awayTeamId": "team-14",
+      "kickoffAt": "2026-12-03T17:30:00-06:00",
+      "venue": "Cancha El Remanso",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    },
+    {
+      "id": "m-hym-8",
+      "competitionId": "liga-heroes-y-martires",
+      "jornada": 1,
+      "homeTeamId": "team-15",
+      "awayTeamId": "team-16",
+      "kickoffAt": "2026-12-04T16:00:00-06:00",
+      "venue": "Estadio Municipal SJDS",
+      "status": "programado",
+      "homeScore": 0,
+      "awayScore": 0,
+      "referee": "Por designar"
+    }
+  ],
+  "events": [],
+  "pointAdjustments": [],
+  "suspensionOverrides": [],
+  "auditLogs": [],
+  "users": [
+    {
+      "id": "user-admin-1",
+      "email": "admin@ligasjds.ni",
+      "passwordHash": "2e6f4a21018626830747f258147aef281ef7e960a49c431052b3ddd49538c06e",
+      "name": "Comité Directivo SJDS",
+      "role": "admin"
+    },
+    {
+      "id": "user-dt-1",
+      "email": "dt.equipo1@ligasjds.ni",
+      "passwordHash": "c4695610b846b3ce02c737ac68203e72c45c5cb6b9836b364cc3d336ed1fb25d",
+      "name": "DT Equipo 1",
+      "role": "dt",
+      "assignedTeamId": "team-1"
+    },
+    {
+      "id": "user-dt-2",
+      "email": "dt.equipo2@ligasjds.ni",
+      "passwordHash": "2d1fd99fb32dfa655d389eb6c058bc1afd7e06c71a5cf19d8ae86a4158661217",
+      "name": "DT Equipo 2",
+      "role": "dt",
+      "assignedTeamId": "team-2"
+    }
+  ]
+}

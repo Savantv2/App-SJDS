@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Barlow Condensed", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-obsidian: #0A0A0A;
+  --color-charcoal: #121215;
+  --color-graphite: #19191E;
+  --color-gold: #D4AF37;
+  --color-gold-bright: #E5C453;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background-color: #0A0A0A;
+    color: #F5F5F4;
+    scroll-behavior: smooth;
+    overflow-x: clip;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono-num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes sjds-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-sjds-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: sjds-marquee 95s linear infinite;
+}
+
+.animate-sjds-marquee.marquee-md {
+  animation-duration: 140s;
+}
+
+.animate-sjds-marquee.marquee-lg {
+  animation-duration: 200s;
+}
+
+.animate-sjds-marquee.is-paused,
+.marquee-container:hover .animate-sjds-marquee,
+.marquee-container:focus-within .animate-sjds-marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
