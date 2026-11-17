@@ -1,11 +1,26 @@
-import { Archive, ArrowLeftRight, Lock, Plus, RotateCcw, Upload, UserCheck } from 'lucide-react';
+import {
+  Archive,
+  ArrowLeftRight,
+  Lock,
+  Plus,
+  RotateCcw,
+  ShieldCheck,
+  Upload,
+  UserCheck,
+  X,
+} from 'lucide-react';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   addPlayerRequest,
   updatePlayerRequest,
   updateTeamLogoRequest,
+  updateTeamStartersRequest,
 } from '../lib/api';
-import { getPositionLabel } from '../lib/leagueEngine';
+import {
+  getPositionLabel,
+  getTeamStarters,
+  MAX_STARTERS,
+} from '../lib/leagueEngine';
 import type {
   Competition,
   Player,
@@ -69,9 +84,46 @@ export function DTPanelView({
     .sort((a, b) => a.dorsal - b.dorsal);
   const activePlayers = teamPlayers.filter((p) => p.status === 'active');
   const archivedPlayers = teamPlayers.filter((p) => p.status === 'archived');
+  const starters = getTeamStarters(assignedTeam, teamPlayers);
+  const starterIdSet = new Set(starters.map((s) => s.id));
   const isLockedByLeague =
     competition.status === 'archived' || !competition.rules.registrationOpen;
   const isFull = activePlayers.length >= competition.rules.maxActivePlayers;
+
+  const handleToggleStarter = async (player: Player) => {
+    setFeedback(null);
+    const isStarter = starterIdSet.has(player.id);
+    if (!isStarter && starters.length >= MAX_STARTERS) {
+      setFeedback({
+        type: 'error',
+        text: `Ya tienes ${MAX_STARTERS} titulares seleccionados. Quita a uno antes de añadir otro.`,
+      });
+      return;
+    }
+
+    const nextIds = isStarter
+      ? starters.filter((s) => s.id !== player.id).map((s) => s.id)
+      : [...starters.map((s) => s.id), player.id];
+
+    setBusy(true);
+    try {
+      await updateTeamStartersRequest(assignedTeam.id, nextIds);
+      setFeedback({
+        type: 'ok',
+        text: isStarter
+          ? `${player.name} retirado de los titulares (${nextIds.length}/${MAX_STARTERS}).`
+          : `${player.name} añadido a los titulares (${nextIds.length}/${MAX_STARTERS}).`,
+      });
+      await onRefresh();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'No se pudo actualizar los titulares.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleAddPlayer = async (e: FormEvent) => {
     e.preventDefault();
@@ -348,6 +400,73 @@ export function DTPanelView({
         </form>
       </section>
 
+      {/* Starting 11 Summary */}
+      <section className="rounded-lg border border-white/[0.08] bg-[#111114] overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] px-4 sm:px-5 py-3.5 sm:py-4">
+          <div>
+            <h2 className="font-display text-xl sm:text-2xl font-bold tracking-wide text-[#F5F5F4] inline-flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-[#D4AF37]" />
+              <span>Once Titular ({starters.length}/{MAX_STARTERS})</span>
+            </h2>
+            <p className="text-xs text-zinc-400">
+              Selecciona hasta 11 jugadores activos como titulares. Visibles para el público en la
+              pestaña Equipos.
+            </p>
+          </div>
+          <div className="font-mono-num text-xs text-zinc-300 flex items-center gap-2.5">
+            {POSITIONS.map((pos) => (
+              <span key={pos}>
+                <strong className="text-[#D4AF37]">
+                  {starters.filter((s) => s.primaryPosition === pos).length}
+                </strong>{' '}
+                {pos}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {starters.length === 0 ? (
+          <div className="p-5 text-xs text-zinc-400">
+            Aún no has seleccionado titulares. Usa el botón <strong className="text-[#D4AF37]">+ Titular</strong> en la lista de jugadores activos abajo.
+          </div>
+        ) : (
+          <div className="grid gap-2 p-4 sm:p-5 sm:grid-cols-2 lg:grid-cols-3 bg-[#0D0D10]">
+            {starters.map((player, idx) => (
+              <div
+                key={player.id}
+                className="flex items-center justify-between gap-2 rounded-md border border-[#D4AF37]/30 bg-[#111114] px-3 py-2"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-mono-num text-[11px] text-zinc-500 w-4 shrink-0">
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <span className="font-mono-num w-7 h-7 rounded border border-[#D4AF37]/40 bg-[#D4AF37]/10 flex items-center justify-center text-xs font-bold text-[#D4AF37] shrink-0">
+                    {player.dorsal}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-[#F5F5F4] truncate">
+                      {player.name}
+                    </div>
+                    <div className="text-[11px] text-zinc-400">
+                      {player.primaryPosition} · {getPositionLabel(player.primaryPosition)}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={busy || competition.status === 'archived'}
+                  onClick={() => void handleToggleStarter(player)}
+                  aria-label={`Quitar a ${player.name} de titulares`}
+                  className="min-h-[32px] min-w-[32px] inline-flex items-center justify-center rounded border border-white/[0.1] text-zinc-400 hover:border-rose-500/40 hover:text-rose-300 disabled:opacity-40 transition-colors shrink-0 cursor-pointer touch-manipulation"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Active Roster Editor */}
       <section className="rounded-lg border border-white/[0.08] bg-[#111114] overflow-visible">
         <div className="border-b border-white/[0.08] px-4 sm:px-5 py-3.5 sm:py-4">
@@ -418,6 +537,34 @@ export function DTPanelView({
                   align="right"
                   className="w-full sm:w-[140px]"
                 />
+
+                {(() => {
+                  const isStarter = starterIdSet.has(player.id);
+                  return (
+                    <button
+                      type="button"
+                      disabled={
+                        busy ||
+                        competition.status === 'archived' ||
+                        (!isStarter && starters.length >= MAX_STARTERS)
+                      }
+                      onClick={() => void handleToggleStarter(player)}
+                      aria-label={
+                        isStarter
+                          ? `Quitar a ${player.name} de titulares`
+                          : `Añadir a ${player.name} a titulares`
+                      }
+                      className={`min-h-[40px] sm:min-h-[38px] inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer touch-manipulation disabled:opacity-40 ${
+                        isStarter
+                          ? 'border-[#D4AF37] bg-[#D4AF37]/15 text-[#D4AF37] hover:bg-[#D4AF37]/25'
+                          : 'border-white/[0.12] bg-[#0D0D10] text-zinc-200 hover:border-[#D4AF37]/60 hover:text-[#D4AF37]'
+                      }`}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{isStarter ? 'Titular' : '+ Titular'}</span>
+                    </button>
+                  );
+                })()}
 
                 {user.role === 'dt' && teams.length > 1 && (
                   <button

@@ -18,6 +18,7 @@ import {
   sanitizePublicEvents,
   validatePlayerTransfer,
   validateRosterMutation,
+  validateTeamStarters,
 } from './src/lib/leagueEngine';
 import type {
   Competition,
@@ -157,7 +158,8 @@ function requireTeamAccess(req: AuthedRequest, res: Response, next: NextFunction
     next();
     return;
   }
-  if (user.role === 'dt' && user.assignedTeamId === teamId) {
+  const team = db.teams.find((t) => t.id === teamId);
+  if (user.role === 'dt' && (user.assignedTeamId === teamId || team?.dtUserId === user.id)) {
     next();
     return;
   }
@@ -452,6 +454,9 @@ async function startServer() {
         player.status = status;
         if (status === 'archived') {
           player.archivedAt = new Date().toISOString().slice(0, 10);
+          if (team.starterPlayerIds) {
+            team.starterPlayerIds = team.starterPlayerIds.filter((id) => id !== player.id);
+          }
         } else {
           player.archivedAt = undefined;
         }
@@ -544,6 +549,9 @@ async function startServer() {
       const previousDorsal = player.dorsal;
       player.teamId = targetTeam!.id;
       player.dorsal = nextDorsal;
+      if (sourceTeam.starterPlayerIds) {
+        sourceTeam.starterPlayerIds = sourceTeam.starterPlayerIds.filter((id) => id !== player.id);
+      }
 
       db.auditLogs.push({
         id: `aud-${crypto.randomUUID().slice(0, 8)}`,
@@ -595,6 +603,60 @@ async function startServer() {
         previousValue: prevLogo,
         newValue: team.logoUrl ? 'Nuevo escudo cargado' : 'Restaurado a escudo vectorial',
         reason: `Actualización de imagen de ${team.name}`,
+        actorName: req.authUser!.name,
+        actorRole: req.authUser!.role,
+        createdAt: new Date().toISOString(),
+      });
+
+      await persistDb();
+      res.json({ team });
+    }
+  );
+
+  // DT & Admin: Set Team Starting 11 (Titulares)
+  app.put(
+    '/api/teams/:teamId/starters',
+    requireAuth,
+    requireTeamAccess,
+    async (req: AuthedRequest, res: Response) => {
+      const { teamId } = req.params;
+      const team = db.teams.find((t) => t.id === teamId);
+      if (!team) {
+        res.status(404).json({ error: 'Equipo no encontrado.' });
+        return;
+      }
+
+      const competition = db.competitions.find((c) => c.id === team.competitionId);
+      if (!competition) {
+        res.status(404).json({ error: 'Competencia no encontrada.' });
+        return;
+      }
+      if (competition.status === 'archived') {
+        res.status(400).json({ error: 'Temporada archivada: no se puede modificar el once titular.' });
+        return;
+      }
+
+      const { starterPlayerIds } = req.body as { starterPlayerIds?: string[] };
+      const teamPlayers = db.players.filter((p) => p.teamId === teamId);
+      const validation = validateTeamStarters(teamPlayers, starterPlayerIds ?? []);
+      if (!validation.ok) {
+        res.status(400).json({ error: validation.error });
+        return;
+      }
+
+      const prevCount = team.starterPlayerIds?.length ?? 0;
+      const nextIds = [...(starterPlayerIds ?? [])];
+      team.starterPlayerIds = nextIds;
+
+      db.auditLogs.push({
+        id: `aud-${crypto.randomUUID().slice(0, 8)}`,
+        competitionId: competition.id,
+        action: 'Actualización de 11 titulares',
+        entityType: 'team',
+        entityId: team.id,
+        previousValue: `${prevCount} titular(es)`,
+        newValue: `${nextIds.length} titular(es) confirmado(s)`,
+        reason: `Alineación titular de ${team.name}`,
         actorName: req.authUser!.name,
         actorRole: req.authUser!.role,
         createdAt: new Date().toISOString(),

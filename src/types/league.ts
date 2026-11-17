@@ -44,6 +44,7 @@ export interface Team {
   dtUserId?: string;
   neighborhood: string;
   eliminated?: boolean;
+  starterPlayerIds?: string[];
 }
 
 export interface Player {

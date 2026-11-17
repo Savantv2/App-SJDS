@@ -8,11 +8,14 @@ import {
   calculateTopScorers,
   computeLiveMatchClock,
   findNextAvailableDorsal,
+  getTeamStarters,
+  MAX_STARTERS,
   parseTransferTeamLabel,
   sanitizePublicEvents,
   selectFeaturedMatchdayMatches,
   validatePlayerTransfer,
   validateRosterMutation,
+  validateTeamStarters,
 } from './leagueEngine';
 import { createSeedDatabase } from '../data/seedData';
 import type {
@@ -741,6 +744,8 @@ test('createSeedDatabase seeds Liga Demo mid-Jornada 2 with exaggerated stats, >
   for (const t of demoTeams) {
     const squad = demoPlayers.filter((p) => p.teamId === t.id);
     assert.ok(squad.length >= 16 && squad.length <= 20, `Team ${t.name} has ${squad.length} players`);
+    const starters = getTeamStarters(t, squad);
+    assert.equal(starters.length, MAX_STARTERS, `Team ${t.name} should have 11 default starters`);
   }
 
   // Every match goal event count matches its recorded home/away score
@@ -791,6 +796,57 @@ test('createSeedDatabase seeds Liga Demo mid-Jornada 2 with exaggerated stats, >
     `Expected at least 4 players suspended with 3 yellow cards, got ${yellowSuspended.length}`
   );
 });
+
+test('validateTeamStarters and getTeamStarters enforce 11-player limit, active status, team ownership, and lineup order', () => {
+  const squad: Player[] = [
+    { id: 'sp-9', teamId: 't1', competitionId: 'c1', name: 'Delantero 9', dorsal: 9, primaryPosition: 'DEL', status: 'active', joinedAt: '2026-11-01' },
+    { id: 'sp-1', teamId: 't1', competitionId: 'c1', name: 'Portero 1', dorsal: 1, primaryPosition: 'POR', status: 'active', joinedAt: '2026-11-01' },
+    { id: 'sp-4', teamId: 't1', competitionId: 'c1', name: 'Defensa 4', dorsal: 4, primaryPosition: 'DEF', status: 'active', joinedAt: '2026-11-01' },
+    { id: 'sp-8', teamId: 't1', competitionId: 'c1', name: 'Medio 8', dorsal: 8, primaryPosition: 'MED', status: 'active', joinedAt: '2026-11-01' },
+    ...Array.from({ length: 8 }, (_, idx) => ({
+      id: `sp-extra-${idx + 2}`,
+      teamId: 't1',
+      competitionId: 'c1',
+      name: `Jugador ${idx + 2}`,
+      dorsal: 20 + idx,
+      primaryPosition: 'MED' as const,
+      status: 'active' as const,
+      joinedAt: '2026-11-01',
+    })),
+    { id: 'sp-arch', teamId: 't1', competitionId: 'c1', name: 'Archivado', dorsal: 99, primaryPosition: 'DEL', status: 'archived', joinedAt: '2026-11-01', archivedAt: '2026-11-10' },
+  ];
+
+  // Exceeds 11
+  const twelveIds = squad.filter((p) => p.status === 'active').map((p) => p.id);
+  assert.equal(twelveIds.length, 12);
+  const tooMany = validateTeamStarters(squad, twelveIds);
+  assert.equal(tooMany.ok, false);
+  assert.match(tooMany.error ?? '', /11/);
+
+  // Duplicate
+  const dup = validateTeamStarters(squad, ['sp-1', 'sp-1']);
+  assert.equal(dup.ok, false);
+
+  // Archived player rejected
+  const arch = validateTeamStarters(squad, ['sp-1', 'sp-arch']);
+  assert.equal(arch.ok, false);
+
+  // Foreign player rejected
+  const foreign = validateTeamStarters(squad, ['sp-1', 'other-team-player']);
+  assert.equal(foreign.ok, false);
+
+  // Valid 11 passes and getTeamStarters sorts POR -> DEF -> MED -> DEL
+  const validIds = ['sp-9', 'sp-8', 'sp-4', 'sp-1', ...twelveIds.slice(4, 11)];
+  assert.equal(validIds.length, 11);
+  assert.equal(validateTeamStarters(squad, validIds).ok, true);
+
+  const resolved = getTeamStarters({ id: 't1', starterPlayerIds: validIds }, squad);
+  assert.equal(resolved.length, 11);
+  assert.equal(resolved[0].primaryPosition, 'POR');
+  assert.equal(resolved[1].primaryPosition, 'DEF');
+  assert.equal(resolved[10].primaryPosition, 'DEL');
+});
+
 
 
 

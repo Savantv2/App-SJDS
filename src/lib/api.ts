@@ -5,6 +5,7 @@ import type {
   PositionCode,
   PublicOverviewPayload,
   PublicUser,
+  Team,
 } from '../types/league';
 
 const TOKEN_KEY = 'sjds_auth_token';
@@ -137,6 +138,16 @@ export async function updateTeamLogoRequest(teamId: string, logoUrl: string | nu
   return apiFetch(`/api/teams/${encodeURIComponent(teamId)}/logo`, {
     method: 'PATCH',
     body: JSON.stringify({ logoUrl }),
+  });
+}
+
+export async function updateTeamStartersRequest(
+  teamId: string,
+  starterPlayerIds: string[]
+): Promise<{ team: Team }> {
+  return apiFetch<{ team: Team }>(`/api/teams/${encodeURIComponent(teamId)}/starters`, {
+    method: 'PUT',
+    body: JSON.stringify({ starterPlayerIds }),
   });
 }
 

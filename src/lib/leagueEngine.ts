@@ -21,9 +21,99 @@ export const POSITION_LABELS: Record<PositionCode, string> = {
   DEL: 'Delantero',
 };
 
+export const POSITION_ORDER: Record<PositionCode, number> = {
+  POR: 0,
+  DEF: 1,
+  MED: 2,
+  DEL: 3,
+};
+
+export const MAX_STARTERS = 11;
+
 export function getPositionLabel(code?: PositionCode): string {
   if (!code) return '';
   return POSITION_LABELS[code] ?? code;
+}
+
+export function sortPlayersByLineupOrder(list: Player[]): Player[] {
+  return list.slice().sort((a, b) => {
+    const posDiff = (POSITION_ORDER[a.primaryPosition] ?? 9) - (POSITION_ORDER[b.primaryPosition] ?? 9);
+    if (posDiff !== 0) return posDiff;
+    return a.dorsal - b.dorsal;
+  });
+}
+
+export function getTeamStarters(
+  team: Pick<Team, 'id' | 'starterPlayerIds'>,
+  players: Player[]
+): Player[] {
+  const starterIds = team.starterPlayerIds ?? [];
+  if (starterIds.length === 0) return [];
+
+  const activeTeamPlayerById = new Map(
+    players
+      .filter((p) => p.teamId === team.id && p.status === 'active')
+      .map((p) => [p.id, p])
+  );
+
+  const seen = new Set<string>();
+  const starters: Player[] = [];
+  for (const id of starterIds) {
+    if (seen.has(id)) continue;
+    const player = activeTeamPlayerById.get(id);
+    if (!player) continue;
+    seen.add(id);
+    starters.push(player);
+    if (starters.length >= MAX_STARTERS) break;
+  }
+
+  return sortPlayersByLineupOrder(starters);
+}
+
+export function validateTeamStarters(
+  teamPlayers: Player[],
+  starterPlayerIds: string[]
+): { ok: boolean; error?: string } {
+  if (!Array.isArray(starterPlayerIds)) {
+    return { ok: false, error: 'Lista de titulares inválida.' };
+  }
+
+  const seen = new Set<string>();
+  for (const id of starterPlayerIds) {
+    if (typeof id !== 'string' || !id.trim()) {
+      return { ok: false, error: 'Identificador de jugador titular inválido.' };
+    }
+    if (seen.has(id)) {
+      return { ok: false, error: 'No puedes incluir al mismo jugador dos veces como titular.' };
+    }
+    seen.add(id);
+  }
+
+  if (starterPlayerIds.length > MAX_STARTERS) {
+    return {
+      ok: false,
+      error: `Solo se permiten hasta ${MAX_STARTERS} jugadores titulares por equipo.`,
+    };
+  }
+
+  const playerById = new Map(teamPlayers.map((p) => [p.id, p]));
+  for (const id of starterPlayerIds) {
+    const player = playerById.get(id);
+    if (!player) {
+      return {
+        ok: false,
+        error: 'Uno de los jugadores seleccionados no pertenece a este club.',
+      };
+    }
+    if (player.status !== 'active') {
+      return {
+        ok: false,
+        error: `${player.name} está dado de baja y no puede figurar entre los titulares.`,
+      };
+    }
+  }
+
+  return { ok: true };
 }
 
 export function calculateStandings(

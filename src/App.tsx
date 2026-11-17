@@ -79,9 +79,7 @@ export default function App() {
   };
 
   const handleNavigate = (next: AppSection) => {
-    if (next !== 'equipos') {
-      setSelectedTeamId(null);
-    }
+    setSelectedTeamId(null);
     setSection(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -94,6 +92,7 @@ export default function App() {
 
   const handleAuthSuccess = async (authedUser: PublicUser) => {
     setUser(authedUser);
+    setSelectedTeamId(null);
     setSection(authedUser.role === 'admin' ? 'admin-panel' : 'dt-panel');
     await loadOverview(selectedCompetitionId);
   };

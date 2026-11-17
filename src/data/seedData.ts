@@ -13,7 +13,7 @@ import type {
   UserAccount,
 } from '../types/league';
 
-export const CURRENT_SEED_VERSION = 4;
+export const CURRENT_SEED_VERSION = 5;
 
 export interface LeagueDatabase {
   seedVersion?: number;
@@ -150,6 +150,8 @@ function buildDemoLeagueData() {
     },
   };
 
+  const DEMO_STARTER_DORSALS = [1, 2, 3, 4, 5, 7, 8, 10, 9, 11, 17];
+
   const teams: Team[] = DEMO_CLUBS.map((club, idx) => {
     const palette = TEAM_PALETTES[idx % TEAM_PALETTES.length];
     return {
@@ -164,6 +166,7 @@ function buildDemoLeagueData() {
       dtUserId: club.id === 'demo-team-1' ? 'user-dt-demo-1' : undefined,
       neighborhood: club.neighborhood,
       eliminated: club.eliminated,
+      starterPlayerIds: DEMO_STARTER_DORSALS.map((d) => `demo-p-t${idx + 1}-d${d}`),
     };
   });
 
@@ -895,6 +898,7 @@ function buildHeroesYMartiresData() {
       dtName: `DT Equipo ${num}`,
       dtUserId: num === 1 ? 'user-dt-1' : num === 2 ? 'user-dt-2' : undefined,
       neighborhood: palette.zone,
+      starterPlayerIds: STARTER_ROSTER_TEMPLATE.map((tpl) => `p-t${num}-d${tpl.dorsal}`),
     };
   });
 
