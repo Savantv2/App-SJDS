@@ -217,6 +217,8 @@ export async function updateMatchRequest(
     awayScore?: number;
     liveMinute?: number;
     clockAction?: 'pause' | 'resume';
+    kickoffAt?: string;
+    venue?: string;
     reason?: string;
   }
 ) {

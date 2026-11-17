@@ -1,8 +1,10 @@
 import {
   Ban,
+  CalendarClock,
   CheckCircle2,
   ClipboardList,
   Clock,
+  MapPin,
   Pause,
   Play,
   Plus,
@@ -26,8 +28,17 @@ import {
   updateCompetitionRequest,
   updateMatchRequest,
 } from '../lib/api';
-import { formatDateTimeFull, formatMatchDate, getMatchStatusLabel } from '../lib/format';
-import { computeLiveMatchClock } from '../lib/leagueEngine';
+import {
+  formatDateTimeFull,
+  formatMatchDate,
+  formatMatchTime,
+  getMatchStatusLabel,
+} from '../lib/format';
+import {
+  buildManaguaKickoffIso,
+  computeLiveMatchClock,
+  toManaguaDateTimeParts,
+} from '../lib/leagueEngine';
 import type {
   EventType,
   MatchStatus,
@@ -54,6 +65,12 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
   const [awayTeamId, setAwayTeamId] = useState(data.teams[1]?.id ?? '');
   const [kickoffAt, setKickoffAt] = useState('2026-12-08T16:00');
   const [venue, setVenue] = useState('Estadio Municipal SJDS');
+
+  // Reschedule scheduled matches state
+  const [editingRescheduleId, setEditingRescheduleId] = useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('');
+  const [rescheduleVenue, setRescheduleVenue] = useState('');
 
   // Selected match for Acta editing
   const [matchStatusFilter, setMatchStatusFilter] = useState<MatchStatus>('en_juego');
@@ -115,7 +132,16 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
     setRedMatches(String(data.activeCompetition.rules.redCardSuspensionMatches));
     setRegOpen(data.activeCompetition.rules.registrationOpen);
     setRegDeadline(data.activeCompetition.rules.registrationDeadline);
+    setEditingRescheduleId(null);
   }, [data.activeCompetition.id]);
+
+  const scheduledMatches = data.matches
+    .filter((m) => m.status === 'programado')
+    .slice()
+    .sort((a, b) => {
+      if (a.jornada !== b.jornada) return a.jornada - b.jornada;
+      return new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime();
+    });
 
   const filteredMatches = data.matches.filter((m) => m.status === matchStatusFilter);
   const selectedMatch =
@@ -199,6 +225,46 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
     );
   };
 
+  const handleOpenReschedule = (matchId: string, kickoffIso: string, currentVenue: string) => {
+    if (editingRescheduleId === matchId) {
+      setEditingRescheduleId(null);
+      return;
+    }
+    const parts = toManaguaDateTimeParts(kickoffIso);
+    setEditingRescheduleId(matchId);
+    setRescheduleDate(parts.date);
+    setRescheduleTime(parts.time);
+    setRescheduleVenue(currentVenue);
+    setFeedback(null);
+  };
+
+  const handleSaveReschedule = (e: FormEvent, matchId: string) => {
+    e.preventDefault();
+    const nextIso = buildManaguaKickoffIso(rescheduleDate, rescheduleTime);
+    if (!nextIso) {
+      setFeedback({
+        type: 'error',
+        text: 'Ingresa una fecha y hora válidas para reprogramar el encuentro.',
+      });
+      return;
+    }
+    const cleanVenue = rescheduleVenue.trim();
+    if (cleanVenue.length < 2) {
+      setFeedback({
+        type: 'error',
+        text: 'Ingresa un lugar o cancha válido (mínimo 2 caracteres).',
+      });
+      return;
+    }
+    void runAction(async () => {
+      await updateMatchRequest(matchId, {
+        kickoffAt: nextIso,
+        venue: cleanVenue,
+      });
+      setEditingRescheduleId(null);
+    }, 'Partido reprogramado. Fecha, hora y lugar actualizados en el calendario.');
+  };
+
   const handleAddEvent = (e: FormEvent) => {
     e.preventDefault();
     if (!selectedMatch) return;
@@ -244,7 +310,7 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1 rounded-lg border border-white/[0.08] bg-[#111114] p-1 w-full lg:w-auto">
           {(
             [
-              { id: 'partidos', label: 'Partidos y Actas', icon: ClipboardList },
+              { id: 'partidos', label: 'Partidos', icon: ClipboardList },
               { id: 'auditoria', label: 'Puntos y Auditoría', icon: CheckCircle2 },
               { id: 'equipos', label: 'Clubes y Planteles', icon: Users },
               { id: 'torneos', label: 'Torneos y Reglas', icon: Trophy },
@@ -735,8 +801,8 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
             </section>
           </div>
 
-          {/* Right: Programar Nuevo Partido */}
-          <div className="lg:col-span-5">
+          {/* Right: Programar Nuevo Partido + Reprogramar */}
+          <div className="lg:col-span-5 space-y-6">
             <section className="rounded-lg border border-white/[0.08] bg-[#111114] p-5 space-y-4">
               <h2 className="font-display text-2xl font-bold tracking-wide text-[#F5F5F4]">
                 Programar partido
@@ -823,6 +889,161 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
                   <span>Agregar al calendario</span>
                 </button>
               </form>
+            </section>
+
+            {/* Reprogramar partidos ya programados */}
+            <section className="rounded-lg border border-white/[0.08] bg-[#111114] p-5 space-y-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div>
+                  <h2 className="font-display text-2xl font-bold tracking-wide text-[#F5F5F4]">
+                    Reprogramar
+                  </h2>
+                  <p className="text-xs text-zinc-400">
+                    Edita fecha, hora y lugar de los partidos programados.
+                  </p>
+                </div>
+                <span className="font-mono-num text-xs text-[#D4AF37]">
+                  {scheduledMatches.length} programado{scheduledMatches.length === 1 ? '' : 's'}
+                </span>
+              </div>
+
+              {scheduledMatches.length === 0 ? (
+                <div className="rounded-lg border border-white/[0.08] bg-[#0D0D10] p-4 text-xs text-zinc-400">
+                  No hay partidos programados disponibles para reprogramar en este torneo.
+                </div>
+              ) : (
+                <ul className="divide-y divide-white/[0.08] rounded-lg border border-white/[0.08] bg-[#0D0D10] max-h-[540px] overflow-y-auto">
+                  {scheduledMatches.map((m) => {
+                    const home = data.teams.find((t) => t.id === m.homeTeamId);
+                    const away = data.teams.find((t) => t.id === m.awayTeamId);
+                    const isEditing = editingRescheduleId === m.id;
+                    return (
+                      <li key={m.id} className="p-3.5 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                              <span className="font-mono-num font-bold text-[#D4AF37]">
+                                J{m.jornada}
+                              </span>
+                              <span className="text-zinc-600">·</span>
+                              <span className="font-semibold text-[#F5F5F4] break-words">
+                                {home?.name ?? 'Local'} vs {away?.name ?? 'Visitante'}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-zinc-400">
+                              <span className="inline-flex items-center gap-1">
+                                <CalendarClock className="w-3 h-3 text-zinc-500 shrink-0" />
+                                <span className="capitalize">{formatMatchDate(m.kickoffAt)}</span>
+                                <span>·</span>
+                                <span className="font-mono-num text-zinc-300">
+                                  {formatMatchTime(m.kickoffAt)}
+                                </span>
+                              </span>
+                              <span className="inline-flex items-center gap-1 min-w-0">
+                                <MapPin className="w-3 h-3 text-zinc-500 shrink-0" />
+                                <span className="truncate">{m.venue}</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleOpenReschedule(m.id, m.kickoffAt, m.venue)}
+                            aria-label={`Reprogramar ${home?.name ?? 'Local'} vs ${away?.name ?? 'Visitante'}`}
+                            aria-expanded={isEditing}
+                            className={`min-h-[34px] shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold transition-colors cursor-pointer touch-manipulation ${
+                              isEditing
+                                ? 'border-[#D4AF37] bg-[#D4AF37]/15 text-[#D4AF37]'
+                                : 'border-white/[0.12] bg-[#111114] text-zinc-200 hover:border-[#D4AF37]/60 hover:text-[#D4AF37]'
+                            }`}
+                          >
+                            {isEditing ? 'Cerrar' : 'Editar'}
+                          </button>
+                        </div>
+
+                        {isEditing && (
+                          <form
+                            onSubmit={(e) => handleSaveReschedule(e, m.id)}
+                            className="border-t border-white/[0.08] pt-3 space-y-3"
+                          >
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              <div>
+                                <label
+                                  htmlFor={`re-date-${m.id}`}
+                                  className="block text-[11px] text-zinc-400 mb-1"
+                                >
+                                  Fecha
+                                </label>
+                                <input
+                                  id={`re-date-${m.id}`}
+                                  type="date"
+                                  required
+                                  value={rescheduleDate}
+                                  onChange={(e) => setRescheduleDate(e.target.value)}
+                                  className="w-full min-h-[40px] rounded-md border border-white/[0.14] bg-[#0A0A0A] px-2.5 py-1.5 text-xs font-mono-num text-[#F5F5F4]"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  htmlFor={`re-time-${m.id}`}
+                                  className="block text-[11px] text-zinc-400 mb-1"
+                                >
+                                  Hora
+                                </label>
+                                <input
+                                  id={`re-time-${m.id}`}
+                                  type="time"
+                                  required
+                                  value={rescheduleTime}
+                                  onChange={(e) => setRescheduleTime(e.target.value)}
+                                  className="w-full min-h-[40px] rounded-md border border-white/[0.14] bg-[#0A0A0A] px-2.5 py-1.5 text-xs font-mono-num text-[#F5F5F4]"
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label
+                                htmlFor={`re-venue-${m.id}`}
+                                className="block text-[11px] text-zinc-400 mb-1"
+                              >
+                                Lugar / Cancha
+                              </label>
+                              <input
+                                id={`re-venue-${m.id}`}
+                                type="text"
+                                required
+                                minLength={2}
+                                value={rescheduleVenue}
+                                onChange={(e) => setRescheduleVenue(e.target.value)}
+                                placeholder="Estadio Municipal SJDS"
+                                className="w-full min-h-[40px] rounded-md border border-white/[0.14] bg-[#0A0A0A] px-2.5 py-1.5 text-xs text-[#F5F5F4]"
+                              />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="submit"
+                                disabled={busy}
+                                className="min-h-[38px] flex-1 sm:flex-none rounded-md bg-[#D4AF37] px-3.5 py-1.5 text-xs font-semibold text-[#0A0A0A] hover:bg-[#E5C453] disabled:opacity-50 cursor-pointer touch-manipulation"
+                              >
+                                Guardar cambios
+                              </button>
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => setEditingRescheduleId(null)}
+                                className="min-h-[38px] rounded-md border border-white/[0.12] px-3 py-1.5 text-xs font-medium text-zinc-300 hover:text-white cursor-pointer touch-manipulation"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </form>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </section>
           </div>
         </div>

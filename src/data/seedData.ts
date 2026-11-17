@@ -13,7 +13,7 @@ import type {
   UserAccount,
 } from '../types/league';
 
-export const CURRENT_SEED_VERSION = 5;
+export const CURRENT_SEED_VERSION = 6;
 
 export interface LeagueDatabase {
   seedVersion?: number;
@@ -862,6 +862,28 @@ function buildDemoLeagueData() {
   };
 }
 
+const HEROES_OFFICIAL_CLUBS: Array<{
+  name: string;
+  shortName: string;
+}> = [
+  { name: 'Auxiliadora FC', shortName: 'AUX' },
+  { name: 'CEBADILLA FC', shortName: 'CEB' },
+  { name: 'CUESTA FC', shortName: 'CUE' },
+  { name: 'ENCANTO DEL SUR', shortName: 'ENC' },
+  { name: 'GALES FC', shortName: 'GAL' },
+  { name: 'HARYS FC', shortName: 'HAR' },
+  { name: 'HOOLLIGANS FC', shortName: 'HOO' },
+  { name: 'NEWCASTLE FC', shortName: 'NEW' },
+  { name: 'Novatos de la Virgen', shortName: 'NOV' },
+  { name: 'ORO FC', shortName: 'ORO' },
+  { name: 'OSTIONAL FC', shortName: 'OST' },
+  { name: 'Oro Jr', shortName: 'OJR' },
+  { name: 'POCHOTE FC', shortName: 'POC' },
+  { name: 'Real San Juan FC', shortName: 'RSJ' },
+  { name: 'SUNDERLAND FC', shortName: 'SUN' },
+  { name: 'TORTUGA FC', shortName: 'TOR' },
+];
+
 function buildHeroesYMartiresData() {
   const competitionId = 'liga-heroes-y-martires';
 
@@ -883,19 +905,18 @@ function buildHeroesYMartiresData() {
     },
   };
 
-  const teams: Team[] = Array.from({ length: 16 }, (_, idx) => {
+  const teams: Team[] = HEROES_OFFICIAL_CLUBS.map((club, idx) => {
     const num = idx + 1;
     const palette = TEAM_PALETTES[idx % TEAM_PALETTES.length];
-    const shortNum = num < 10 ? `E0${num}` : `E${num}`;
     return {
       id: `team-${num}`,
       competitionId,
-      name: `Equipo ${num}`,
-      shortName: shortNum,
+      name: club.name,
+      shortName: club.shortName,
       primaryColor: palette.primary,
       secondaryColor: palette.secondary,
       motif: palette.motif,
-      dtName: `DT Equipo ${num}`,
+      dtName: `DT ${club.name}`,
       dtUserId: num === 1 ? 'user-dt-1' : num === 2 ? 'user-dt-2' : undefined,
       neighborhood: palette.zone,
       starterPlayerIds: STARTER_ROSTER_TEMPLATE.map((tpl) => `p-t${num}-d${tpl.dorsal}`),
@@ -979,7 +1000,7 @@ export function createSeedDatabase(): LeagueDatabase {
       id: 'user-dt-1',
       email: 'dt.equipo1@ligasjds.ni',
       passwordHash: hashPassword('Equipo1SJDS!'),
-      name: 'DT Equipo 1',
+      name: 'DT Auxiliadora FC',
       role: 'dt',
       assignedTeamId: 'team-1',
     },
@@ -987,7 +1008,7 @@ export function createSeedDatabase(): LeagueDatabase {
       id: 'user-dt-2',
       email: 'dt.equipo2@ligasjds.ni',
       passwordHash: hashPassword('Equipo2SJDS!'),
-      name: 'DT Equipo 2',
+      name: 'DT CEBADILLA FC',
       role: 'dt',
       assignedTeamId: 'team-2',
     },

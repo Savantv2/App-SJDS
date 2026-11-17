@@ -187,7 +187,14 @@ export function TeamsView({
                     activeTeam.eliminated ? 'text-rose-200' : 'text-[#F5F5F4]'
                   }`}
                 >
-                  {activeTeam.name}
+                  {activeTeam.name}{' '}
+                  <span
+                    className={`font-mono-num text-base sm:text-xl font-medium whitespace-nowrap ${
+                      activeTeam.eliminated ? 'text-rose-200/60' : 'text-[#F5F5F4]/55'
+                    }`}
+                  >
+                    ({activeTeam.shortName})
+                  </span>
                 </h1>
                 <p className="mt-1 inline-flex items-center gap-1.5 text-xs sm:text-sm text-[#D4AF37]">
                   <UserCheck className="w-4 h-4 shrink-0" />
@@ -690,7 +697,14 @@ export function TeamsView({
                         team.eliminated ? 'text-rose-200' : 'text-[#F5F5F4]'
                       }`}
                     >
-                      {team.name}
+                      {team.name}{' '}
+                      <span
+                        className={`font-mono-num text-sm sm:text-base font-medium whitespace-nowrap ${
+                          team.eliminated ? 'text-rose-200/60' : 'text-[#F5F5F4]/55'
+                        }`}
+                      >
+                        ({team.shortName})
+                      </span>
                     </h2>
                     <p className="mt-1 text-xs text-[#D4AF37]">DT: {team.dtName}</p>
                   </div>

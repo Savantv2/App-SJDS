@@ -868,4 +868,95 @@ export function buildPlayerClubHistory(
   return stints;
 }
 
+export function toManaguaDateTimeParts(iso: string): { date: string; time: string } {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return { date: '2026-12-01', time: '15:30' };
+  }
+  const dateParts = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'America/Managua',
+  }).formatToParts(parsed);
+  const year = dateParts.find((p) => p.type === 'year')?.value ?? '2026';
+  const month = dateParts.find((p) => p.type === 'month')?.value ?? '12';
+  const day = dateParts.find((p) => p.type === 'day')?.value ?? '01';
 
+  const timeParts = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'America/Managua',
+  }).formatToParts(parsed);
+  const hour = timeParts.find((p) => p.type === 'hour')?.value ?? '15';
+  const minute = timeParts.find((p) => p.type === 'minute')?.value ?? '30';
+
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hour}:${minute}`,
+  };
+}
+
+export function buildManaguaKickoffIso(date: string, time: string): string | null {
+  const cleanDate = date.trim();
+  const cleanTime = time.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate) || !/^\d{2}:\d{2}$/.test(cleanTime)) {
+    return null;
+  }
+  const [hh, mm] = cleanTime.split(':').map(Number);
+  if (hh < 0 || hh > 23 || mm < 0 || mm > 59) {
+    return null;
+  }
+  const iso = `${cleanDate}T${cleanTime}:00-06:00`;
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+  const roundTrip = toManaguaDateTimeParts(parsed.toISOString());
+  if (roundTrip.date !== cleanDate || roundTrip.time !== cleanTime) {
+    return null;
+  }
+  return iso;
+}
+
+export interface RescheduleValidationResult {
+  ok: boolean;
+  error?: string;
+  kickoffAt?: string;
+  venue?: string;
+}
+
+export function validateMatchReschedule(
+  match: Pick<Match, 'status'>,
+  payload: { kickoffAt?: string; venue?: string }
+): RescheduleValidationResult {
+  if (match.status !== 'programado') {
+    return {
+      ok: false,
+      error: 'Solo se pueden reprogramar partidos en estado Programado.',
+    };
+  }
+
+  const kickoffAt = payload.kickoffAt?.trim() ?? '';
+  if (!kickoffAt || Number.isNaN(new Date(kickoffAt).getTime())) {
+    return {
+      ok: false,
+      error: 'Ingresa una fecha y hora válidas para el partido.',
+    };
+  }
+
+  const venue = payload.venue?.trim() ?? '';
+  if (venue.length < 2) {
+    return {
+      ok: false,
+      error: 'Ingresa un lugar o cancha válido (mínimo 2 caracteres).',
+    };
+  }
+
+  return {
+    ok: true,
+    kickoffAt,
+    venue,
+  };
+}

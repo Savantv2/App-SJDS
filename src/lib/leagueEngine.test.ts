@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildManaguaKickoffIso,
   buildPlayerClubHistory,
   buildTickerNewsItems,
   calculateDisciplineSummary,
@@ -13,6 +14,8 @@ import {
   parseTransferTeamLabel,
   sanitizePublicEvents,
   selectFeaturedMatchdayMatches,
+  toManaguaDateTimeParts,
+  validateMatchReschedule,
   validatePlayerTransfer,
   validateRosterMutation,
   validateTeamStarters,
@@ -845,6 +848,58 @@ test('validateTeamStarters and getTeamStarters enforce 11-player limit, active s
   assert.equal(resolved[0].primaryPosition, 'POR');
   assert.equal(resolved[1].primaryPosition, 'DEF');
   assert.equal(resolved[10].primaryPosition, 'DEL');
+});
+
+test('createSeedDatabase seeds Liga Héroes y Mártires with the 16 official clubs', () => {
+  const db = createSeedDatabase();
+  const hymTeams = db.teams.filter((t) => t.competitionId === 'liga-heroes-y-martires');
+  assert.deepEqual(
+    hymTeams.map((t) => t.name),
+    [
+      'Auxiliadora FC',
+      'CEBADILLA FC',
+      'CUESTA FC',
+      'ENCANTO DEL SUR',
+      'GALES FC',
+      'HARYS FC',
+      'HOOLLIGANS FC',
+      'NEWCASTLE FC',
+      'Novatos de la Virgen',
+      'ORO FC',
+      'OSTIONAL FC',
+      'Oro Jr',
+      'POCHOTE FC',
+      'Real San Juan FC',
+      'SUNDERLAND FC',
+      'TORTUGA FC',
+    ]
+  );
+  assert.equal(new Set(hymTeams.map((t) => t.shortName)).size, 16);
+});
+
+test('Managua date/time helpers and validateMatchReschedule handle timezone and status guards', () => {
+  const parts = toManaguaDateTimeParts('2026-12-01T15:30:00-06:00');
+  assert.deepEqual(parts, { date: '2026-12-01', time: '15:30' });
+
+  const built = buildManaguaKickoffIso('2026-12-10', '18:45');
+  assert.equal(built, '2026-12-10T18:45:00-06:00');
+  assert.equal(buildManaguaKickoffIso('2026-02-30', '15:00'), null);
+  assert.equal(buildManaguaKickoffIso('2026-12-10', '25:00'), null);
+
+  assert.equal(
+    validateMatchReschedule({ status: 'finalizado' }, { kickoffAt: built!, venue: 'Estadio SJDS' }).ok,
+    false
+  );
+  assert.equal(
+    validateMatchReschedule({ status: 'programado' }, { kickoffAt: built!, venue: ' ' }).ok,
+    false
+  );
+  const valid = validateMatchReschedule(
+    { status: 'programado' },
+    { kickoffAt: built!, venue: '  Cancha El Remanso  ' }
+  );
+  assert.equal(valid.ok, true);
+  assert.equal(valid.venue, 'Cancha El Remanso');
 });
 
 

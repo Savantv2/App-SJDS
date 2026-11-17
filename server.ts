@@ -16,6 +16,8 @@ import {
   computeMatchScoreFromEvents,
   parseTransferTeamLabel,
   sanitizePublicEvents,
+  toManaguaDateTimeParts,
+  validateMatchReschedule,
   validatePlayerTransfer,
   validateRosterMutation,
   validateTeamStarters,
@@ -900,21 +902,52 @@ async function startServer() {
         return;
       }
 
-      const { status, homeScore, awayScore, liveMinute, clockAction, reason } = req.body as {
-        status?: MatchStatus;
-        homeScore?: number;
-        awayScore?: number;
-        liveMinute?: number;
-        clockAction?: 'pause' | 'resume';
-        reason?: string;
-      };
+      const { status, homeScore, awayScore, liveMinute, clockAction, kickoffAt, venue, reason } =
+        req.body as {
+          status?: MatchStatus;
+          homeScore?: number;
+          awayScore?: number;
+          liveMinute?: number;
+          clockAction?: 'pause' | 'resume';
+          kickoffAt?: string;
+          venue?: string;
+          reason?: string;
+        };
 
+      const isRescheduling = kickoffAt !== undefined || venue !== undefined;
+      let validatedReschedule: { kickoffAt: string; venue: string } | null = null;
+      if (isRescheduling) {
+        const effectiveStatus = status ?? match.status;
+        const validation = validateMatchReschedule(
+          { status: effectiveStatus },
+          {
+            kickoffAt: kickoffAt ?? match.kickoffAt,
+            venue: venue ?? match.venue,
+          }
+        );
+        if (!validation.ok) {
+          res.status(400).json({ error: validation.error });
+          return;
+        }
+        validatedReschedule = {
+          kickoffAt: validation.kickoffAt!,
+          venue: validation.venue!,
+        };
+      }
+
+      const prevParts = toManaguaDateTimeParts(match.kickoffAt);
+      const prevSchedule = `${prevParts.date} ${prevParts.time} · ${match.venue}`;
       const prev = `${match.status} (${match.homeScore}-${match.awayScore})`;
       const prevStatus = match.status;
+
       if (status) match.status = status;
       if (homeScore !== undefined) match.homeScore = Math.max(0, Number(homeScore));
       if (awayScore !== undefined) match.awayScore = Math.max(0, Number(awayScore));
       if (liveMinute !== undefined) match.liveMinute = Math.max(1, Math.min(130, Number(liveMinute)));
+      if (validatedReschedule) {
+        match.kickoffAt = validatedReschedule.kickoffAt;
+        match.venue = validatedReschedule.venue;
+      }
 
       const now = Date.now();
       if (clockAction === 'pause' && match.status === 'en_juego') {
@@ -948,20 +981,35 @@ async function startServer() {
         match.liveClockPaused = undefined;
       }
 
+      const nextParts = toManaguaDateTimeParts(match.kickoffAt);
+      const nextSchedule = `${nextParts.date} ${nextParts.time} · ${match.venue}`;
+      const isScheduleOnly =
+        Boolean(validatedReschedule) &&
+        !status &&
+        !clockAction &&
+        homeScore === undefined &&
+        awayScore === undefined &&
+        liveMinute === undefined;
+
       db.auditLogs.push({
         id: `aud-${crypto.randomUUID().slice(0, 8)}`,
         competitionId: match.competitionId,
-        action:
-          clockAction === 'pause'
+        action: isScheduleOnly
+          ? 'Reprogramación de partido'
+          : clockAction === 'pause'
             ? 'Pausa de cronómetro en vivo'
             : clockAction === 'resume'
               ? 'Reanudación de cronómetro en vivo'
               : 'Actualización de estado / marcador de partido',
         entityType: 'match',
         entityId: match.id,
-        previousValue: prev,
-        newValue: `${match.status} (${match.homeScore}-${match.awayScore})`,
-        reason: reason?.trim() || 'Actualización de acta oficial',
+        previousValue: isScheduleOnly ? prevSchedule : prev,
+        newValue: isScheduleOnly ? nextSchedule : `${match.status} (${match.homeScore}-${match.awayScore})`,
+        reason:
+          reason?.trim() ||
+          (isScheduleOnly
+            ? 'Actualización de fecha, hora o lugar en calendario oficial'
+            : 'Actualización de acta oficial'),
         actorName: req.authUser!.name,
         actorRole: 'admin',
         createdAt: new Date().toISOString(),
