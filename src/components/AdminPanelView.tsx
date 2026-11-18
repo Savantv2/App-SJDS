@@ -2,6 +2,8 @@ import {
   Ban,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
   Clock,
   MapPin,
@@ -9,6 +11,7 @@ import {
   Play,
   Plus,
   RefreshCw,
+  Search,
   Shield,
   Trash2,
   Trophy,
@@ -23,6 +26,7 @@ import {
   createPointAdjustmentRequest,
   createTeamRequest,
   deleteMatchEventRequest,
+  deletePlayerCardsRequest,
   overrideDisciplineRequest,
   resetDemoDataRequest,
   updateCompetitionRequest,
@@ -92,6 +96,11 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
   const [discMatches, setDiscMatches] = useState('0');
   const [discNote, setDiscNote] = useState('');
 
+  // Player cards management (Admin only)
+  const [cardTeamFilter, setCardTeamFilter] = useState<string>('all');
+  const [cardPlayerSearch, setCardPlayerSearch] = useState<string>('');
+  const [expandedCardPlayerId, setExpandedCardPlayerId] = useState<string | null>(null);
+
   // New team state
   const [teamName, setTeamName] = useState('');
   const [teamShort, setTeamShort] = useState('');
@@ -128,6 +137,9 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
     setAdjTeamId(data.teams[0]?.id ?? '');
     setAdminPlayerTeamId(data.teams[0]?.id ?? '');
     setDiscPlayerId(data.discipline[0]?.playerId ?? '');
+    setCardTeamFilter('all');
+    setCardPlayerSearch('');
+    setExpandedCardPlayerId(null);
     setYellowLimit(String(data.activeCompetition.rules.yellowAccumulationLimit));
     setRedMatches(String(data.activeCompetition.rules.redCardSuspensionMatches));
     setRegOpen(data.activeCompetition.rules.registrationOpen);
@@ -187,6 +199,27 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
         .slice()
         .sort((a, b) => (a.minute ?? 999) - (b.minute ?? 999))
     : [];
+
+  const effectiveDiscPlayerId = data.discipline.some((d) => d.playerId === discPlayerId)
+    ? discPlayerId
+    : data.discipline[0]?.playerId ?? '';
+
+  const playersWithCards = data.discipline.filter(
+    (d) => d.yellowCards > 0 || d.redCards > 0
+  );
+  const totalYellowCardsInComp = playersWithCards.reduce((acc, d) => acc + d.yellowCards, 0);
+  const totalRedCardsInComp = playersWithCards.reduce((acc, d) => acc + d.redCards, 0);
+  const normalizedCardQuery = cardPlayerSearch.trim().toLowerCase();
+  const filteredCardPlayers = playersWithCards.filter((d) => {
+    if (cardTeamFilter !== 'all' && d.teamId !== cardTeamFilter) return false;
+    if (!normalizedCardQuery) return true;
+    return (
+      d.playerName.toLowerCase().includes(normalizedCardQuery) ||
+      String(d.dorsal).includes(normalizedCardQuery) ||
+      d.teamName.toLowerCase().includes(normalizedCardQuery) ||
+      d.teamShortName.toLowerCase().includes(normalizedCardQuery)
+    );
+  });
 
   const runAction = async (
     fn: () => Promise<unknown>,
@@ -311,7 +344,7 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
           {(
             [
               { id: 'partidos', label: 'Partidos', icon: ClipboardList },
-              { id: 'auditoria', label: 'Puntos y Auditoría', icon: CheckCircle2 },
+              { id: 'auditoria', label: 'Disciplina y Auditoría', icon: CheckCircle2 },
               { id: 'equipos', label: 'Clubes y Planteles', icon: Users },
               { id: 'torneos', label: 'Torneos y Reglas', icon: Trophy },
             ] as const
@@ -1138,11 +1171,12 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
+                    if (!effectiveDiscPlayerId) return;
                     void runAction(
                       () =>
                         overrideDisciplineRequest({
                           competitionId: data.activeCompetition.id,
-                          playerId: discPlayerId || data.discipline[0].playerId,
+                          playerId: effectiveDiscPlayerId,
                           matchesRemaining: Number(discMatches),
                           validated: true,
                           note: discNote || 'Validado por Comité Disciplinario',
@@ -1160,7 +1194,7 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
                       <FlatSelect
                         id="disc-player"
                         ariaLabel="Jugador"
-                        value={discPlayerId || data.discipline[0]?.playerId}
+                        value={effectiveDiscPlayerId}
                         onChange={setDiscPlayerId}
                         options={data.discipline.map((d) => ({
                           value: d.playerId,
@@ -1209,6 +1243,313 @@ export function AdminPanelView({ data, onRefresh }: AdminPanelViewProps) {
               )}
             </section>
           </div>
+
+          {/* Admin-only Player Yellow & Red Card Removal */}
+          <section
+            aria-labelledby="admin-player-cards-heading"
+            className="rounded-lg border border-white/[0.08] bg-[#111114] overflow-hidden"
+          >
+            <div className="border-b border-white/[0.08] px-4 sm:px-5 py-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <h2
+                  id="admin-player-cards-heading"
+                  className="font-display text-2xl font-bold tracking-wide text-[#F5F5F4]"
+                >
+                  Tarjetas amarillas y rojas por jugador
+                </h2>
+                <p className="text-xs text-zinc-400">
+                  Exclusivo de administración: elimina tarjetas individuales, todas las amarillas,
+                  todas las rojas o limpia el historial disciplinario de un jugador.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono-num">
+                <span className="text-zinc-300">
+                  {playersWithCards.length} jugador{playersWithCards.length === 1 ? '' : 'es'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-amber-400 font-semibold">
+                  <span className="inline-block w-2 h-3 rounded-[2px] bg-amber-400" aria-hidden="true" />
+                  {totalYellowCardsInComp} amarillas
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-rose-400 font-semibold">
+                  <span className="inline-block w-2 h-3 rounded-[2px] bg-rose-500" aria-hidden="true" />
+                  {totalRedCardsInComp} rojas
+                </span>
+              </div>
+            </div>
+
+            {playersWithCards.length === 0 ? (
+              <div className="p-6 text-center text-xs text-zinc-400">
+                No hay jugadores con tarjetas amarillas ni rojas registradas en este torneo.
+              </div>
+            ) : (
+              <div className="p-4 sm:p-5 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                  <div className="sm:col-span-5">
+                    <label htmlFor="admin-cards-team-filter" className="block text-xs text-zinc-400 mb-1">
+                      Filtrar por club
+                    </label>
+                    <FlatSelect
+                      id="admin-cards-team-filter"
+                      ariaLabel="Filtrar tarjetas por club"
+                      value={cardTeamFilter}
+                      onChange={setCardTeamFilter}
+                      options={[
+                        { value: 'all', label: 'Todos los clubes' },
+                        ...data.teams.map((t) => ({
+                          value: t.id,
+                          label: t.name,
+                          meta: t.shortName,
+                        })),
+                      ]}
+                      size="sm"
+                      menuClassName="w-full"
+                    />
+                  </div>
+                  <div className="sm:col-span-7">
+                    <label htmlFor="admin-cards-player-search" className="block text-xs text-zinc-400 mb-1">
+                      Buscar jugador o dorsal
+                    </label>
+                    <div className="relative">
+                      <Search
+                        className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                        aria-hidden="true"
+                      />
+                      <input
+                        id="admin-cards-player-search"
+                        type="search"
+                        value={cardPlayerSearch}
+                        onChange={(e) => setCardPlayerSearch(e.target.value)}
+                        placeholder="Nombre, dorsal o sigla..."
+                        className="w-full min-h-[38px] rounded-md border border-white/[0.12] bg-[#0D0D10] pl-8 pr-3 py-1.5 text-xs text-[#F5F5F4] placeholder:text-zinc-500 focus:border-[#D4AF37] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {filteredCardPlayers.length === 0 ? (
+                  <div className="rounded-lg border border-white/[0.08] bg-[#0D0D10] p-5 text-center text-xs text-zinc-400">
+                    Ningún jugador coincide con el filtro actual.
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-white/[0.08] rounded-lg border border-white/[0.08] bg-[#0D0D10] max-h-[560px] overflow-y-auto">
+                    {filteredCardPlayers.map((row) => {
+                      const playerCardEvents = data.events
+                        .filter(
+                          (ev) =>
+                            ev.playerId === row.playerId &&
+                            (ev.type === 'yellow_card' || ev.type === 'red_card')
+                        )
+                        .slice()
+                        .sort(
+                          (a, b) =>
+                            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                        );
+                      const isExpanded = expandedCardPlayerId === row.playerId;
+
+                      return (
+                        <li key={row.playerId} className="p-3.5 sm:p-4 space-y-3">
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                            <div className="min-w-0 space-y-1">
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                                <span className="font-mono-num text-xs font-bold text-[#D4AF37]">
+                                  #{row.dorsal}
+                                </span>
+                                <span className="font-semibold text-sm text-[#F5F5F4] break-words">
+                                  {row.playerName}
+                                </span>
+                                <span className="text-xs text-zinc-400">
+                                  {row.teamName} ({row.teamShortName})
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                                <span className="inline-flex items-center gap-1.5 font-mono-num font-semibold text-amber-400">
+                                  <span
+                                    className="inline-block w-2 h-3 rounded-[2px] bg-amber-400"
+                                    aria-hidden="true"
+                                  />
+                                  {row.yellowCards} amarilla{row.yellowCards === 1 ? '' : 's'}
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 font-mono-num font-semibold text-rose-400">
+                                  <span
+                                    className="inline-block w-2 h-3 rounded-[2px] bg-rose-500"
+                                    aria-hidden="true"
+                                  />
+                                  {row.redCards} roja{row.redCards === 1 ? '' : 's'}
+                                </span>
+                                {row.isSuspended ? (
+                                  <span className="font-semibold text-rose-400">
+                                    Suspendido · {row.pendingMatches} p. pend.
+                                  </span>
+                                ) : (
+                                  <span className="text-emerald-400 font-medium">Habilitado</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 shrink-0">
+                              {row.yellowCards > 0 && (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  aria-label={`Quitar amarillas de ${row.playerName}`}
+                                  onClick={() =>
+                                    void runAction(
+                                      () =>
+                                        deletePlayerCardsRequest(row.playerId, {
+                                          competitionId: data.activeCompetition.id,
+                                          cardType: 'yellow_card',
+                                          reason: `Eliminación de amarillas de ${row.playerName} desde Panel Admin`,
+                                        }),
+                                      `Tarjetas amarillas de ${row.playerName} eliminadas.`
+                                    )
+                                  }
+                                  className="min-h-[36px] inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-950/20 px-2.5 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-950/40 disabled:opacity-50 transition-colors cursor-pointer touch-manipulation"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Quitar amarillas ({row.yellowCards})</span>
+                                </button>
+                              )}
+
+                              {row.redCards > 0 && (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  aria-label={`Quitar rojas de ${row.playerName}`}
+                                  onClick={() =>
+                                    void runAction(
+                                      () =>
+                                        deletePlayerCardsRequest(row.playerId, {
+                                          competitionId: data.activeCompetition.id,
+                                          cardType: 'red_card',
+                                          reason: `Eliminación de rojas de ${row.playerName} desde Panel Admin`,
+                                        }),
+                                      `Tarjetas rojas de ${row.playerName} eliminadas.`
+                                    )
+                                  }
+                                  className="min-h-[36px] inline-flex items-center gap-1.5 rounded-md border border-rose-500/40 bg-rose-950/25 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-950/45 disabled:opacity-50 transition-colors cursor-pointer touch-manipulation"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Quitar rojas ({row.redCards})</span>
+                                </button>
+                              )}
+
+                              {row.yellowCards > 0 && row.redCards > 0 && (
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  aria-label={`Limpiar todas las tarjetas de ${row.playerName}`}
+                                  onClick={() =>
+                                    void runAction(
+                                      () =>
+                                        deletePlayerCardsRequest(row.playerId, {
+                                          competitionId: data.activeCompetition.id,
+                                          cardType: 'all',
+                                          reason: `Limpieza total de tarjetas de ${row.playerName} desde Panel Admin`,
+                                        }),
+                                      `Todas las tarjetas de ${row.playerName} fueron eliminadas.`
+                                    )
+                                  }
+                                  className="min-h-[36px] inline-flex items-center gap-1.5 rounded-md border border-white/[0.14] bg-[#111114] px-2.5 py-1.5 text-xs font-semibold text-zinc-200 hover:border-rose-400/60 hover:text-rose-200 disabled:opacity-50 transition-colors cursor-pointer touch-manipulation"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Limpiar todas</span>
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                aria-expanded={isExpanded}
+                                aria-label={`Ver detalle de tarjetas de ${row.playerName}`}
+                                onClick={() =>
+                                  setExpandedCardPlayerId(isExpanded ? null : row.playerId)
+                                }
+                                className="min-h-[36px] inline-flex items-center gap-1 rounded-md border border-white/[0.12] bg-[#111114] px-2.5 py-1.5 text-xs font-medium text-zinc-300 hover:border-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors cursor-pointer touch-manipulation"
+                              >
+                                <span>Detalle ({playerCardEvents.length})</span>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                ) : (
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="border-t border-white/[0.08] pt-2.5 space-y-1.5">
+                              {playerCardEvents.map((ev) => {
+                                const match = data.matches.find((m) => m.id === ev.matchId);
+                                const oppId =
+                                  match && match.homeTeamId === row.teamId
+                                    ? match.awayTeamId
+                                    : match?.homeTeamId;
+                                const opp = data.teams.find((t) => t.id === oppId);
+                                const isRed = ev.type === 'red_card';
+                                return (
+                                  <div
+                                    key={ev.id}
+                                    className="flex items-center justify-between gap-2 rounded-md border border-white/[0.07] bg-[#111114] px-3 py-2 text-xs"
+                                  >
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 min-w-0">
+                                      <span
+                                        className={`inline-block w-2 h-3 rounded-[2px] shrink-0 ${
+                                          isRed ? 'bg-rose-500' : 'bg-amber-400'
+                                        }`}
+                                        aria-hidden="true"
+                                      />
+                                      <span
+                                        className={`font-semibold ${
+                                          isRed ? 'text-rose-300' : 'text-amber-300'
+                                        }`}
+                                      >
+                                        {isRed ? 'Tarjeta roja' : 'Tarjeta amarilla'}
+                                      </span>
+                                      {match && (
+                                        <span className="text-zinc-400">
+                                          · J{match.jornada} vs {opp?.shortName ?? 'Rival'}
+                                        </span>
+                                      )}
+                                      {ev.minute && (
+                                        <span className="font-mono-num text-[#D4AF37]">
+                                          · Min {ev.minute}&apos;
+                                        </span>
+                                      )}
+                                      {ev.note && (
+                                        <span className="text-zinc-400 truncate">· {ev.note}</span>
+                                      )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      disabled={busy}
+                                      aria-label={`Eliminar ${isRed ? 'tarjeta roja' : 'tarjeta amarilla'} de ${row.playerName} (${ev.id})`}
+                                      onClick={() =>
+                                        void runAction(
+                                          () =>
+                                            deletePlayerCardsRequest(row.playerId, {
+                                              competitionId: data.activeCompetition.id,
+                                              eventId: ev.id,
+                                              reason: `Eliminación individual de ${isRed ? 'roja' : 'amarilla'} de ${row.playerName}`,
+                                            }),
+                                          `${isRed ? 'Tarjeta roja' : 'Tarjeta amarilla'} de ${row.playerName} eliminada.`
+                                        )
+                                      }
+                                      className="min-h-[32px] min-w-[32px] inline-flex items-center justify-center rounded border border-white/[0.1] text-zinc-400 hover:border-rose-500/40 hover:text-rose-300 disabled:opacity-40 transition-colors shrink-0 cursor-pointer touch-manipulation"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+          </section>
 
           {/* Audit History */}
           <section className="rounded-lg border border-white/[0.08] bg-[#111114] overflow-hidden">

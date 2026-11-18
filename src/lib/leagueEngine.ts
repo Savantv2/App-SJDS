@@ -960,3 +960,59 @@ export function validateMatchReschedule(
     venue,
   };
 }
+
+export type CardRemovalTarget = 'yellow_card' | 'red_card' | 'all';
+
+export function countPlayerCards(
+  events: MatchEvent[],
+  competitionId: string,
+  playerId: string
+): { yellowCards: number; redCards: number } {
+  let yellowCards = 0;
+  let redCards = 0;
+  for (const ev of events) {
+    if (ev.competitionId !== competitionId || ev.playerId !== playerId) continue;
+    if (ev.type === 'yellow_card') yellowCards += 1;
+    else if (ev.type === 'red_card') redCards += 1;
+  }
+  return { yellowCards, redCards };
+}
+
+export function removePlayerCardEvents(
+  events: MatchEvent[],
+  params: {
+    competitionId: string;
+    playerId: string;
+    cardType?: CardRemovalTarget;
+    eventId?: string;
+  }
+): { remainingEvents: MatchEvent[]; removedEvents: MatchEvent[] } {
+  const targetType = params.cardType ?? 'all';
+  const removedEvents: MatchEvent[] = [];
+  const remainingEvents: MatchEvent[] = [];
+
+  for (const ev of events) {
+    const isPlayerCardInComp =
+      ev.competitionId === params.competitionId &&
+      ev.playerId === params.playerId &&
+      (ev.type === 'yellow_card' || ev.type === 'red_card');
+
+    if (!isPlayerCardInComp) {
+      remainingEvents.push(ev);
+      continue;
+    }
+
+    const matchesRemoval = params.eventId
+      ? ev.id === params.eventId
+      : targetType === 'all' || ev.type === targetType;
+
+    if (matchesRemoval) {
+      removedEvents.push(ev);
+    } else {
+      remainingEvents.push(ev);
+    }
+  }
+
+  return { remainingEvents, removedEvents };
+}
+

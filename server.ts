@@ -14,13 +14,16 @@ import {
   calculateStandings,
   calculateTopScorers,
   computeMatchScoreFromEvents,
+  countPlayerCards,
   parseTransferTeamLabel,
+  removePlayerCardEvents,
   sanitizePublicEvents,
   toManaguaDateTimeParts,
   validateMatchReschedule,
   validatePlayerTransfer,
   validateRosterMutation,
   validateTeamStarters,
+  type CardRemovalTarget,
 } from './src/lib/leagueEngine';
 import type {
   Competition,
@@ -1294,6 +1297,94 @@ async function startServer() {
 
       await persistDb();
       res.json({ ok: true });
+    }
+  );
+
+  app.delete(
+    '/api/admin/players/:playerId/cards',
+    requireAuth,
+    requireAdmin,
+    async (req: AuthedRequest, res: Response) => {
+      const { playerId } = req.params;
+      const { competitionId, cardType, eventId, reason } = req.body as {
+        competitionId?: string;
+        cardType?: CardRemovalTarget;
+        eventId?: string;
+        reason?: string;
+      };
+
+      const validTypes: CardRemovalTarget[] = ['yellow_card', 'red_card', 'all'];
+      if (cardType !== undefined && !validTypes.includes(cardType)) {
+        res.status(400).json({ error: 'Tipo de tarjeta no válido.' });
+        return;
+      }
+
+      const player = db.players.find(
+        (p) => p.id === playerId && (!competitionId || p.competitionId === competitionId)
+      );
+      if (!player) {
+        res.status(404).json({ error: 'Jugador no encontrado en la competencia.' });
+        return;
+      }
+
+      const targetCompetitionId = player.competitionId;
+      const beforeCounts = countPlayerCards(db.events, targetCompetitionId, player.id);
+
+      const { remainingEvents, removedEvents } = removePlayerCardEvents(db.events, {
+        competitionId: targetCompetitionId,
+        playerId: player.id,
+        cardType: cardType ?? 'all',
+        eventId,
+      });
+
+      if (removedEvents.length === 0) {
+        res.status(404).json({ error: 'No se encontraron tarjetas para eliminar en este jugador.' });
+        return;
+      }
+
+      db.events = remainingEvents;
+      const afterCounts = countPlayerCards(db.events, targetCompetitionId, player.id);
+
+      if (afterCounts.yellowCards === 0 && afterCounts.redCards === 0) {
+        db.suspensionOverrides = db.suspensionOverrides.filter(
+          (s) => !(s.competitionId === targetCompetitionId && s.playerId === player.id)
+        );
+      }
+
+      const targetLabel = eventId
+        ? removedEvents[0].type === 'red_card'
+          ? 'Eliminación de tarjeta roja'
+          : 'Eliminación de tarjeta amarilla'
+        : cardType === 'yellow_card'
+          ? 'Eliminación de tarjetas amarillas'
+          : cardType === 'red_card'
+            ? 'Eliminación de tarjetas rojas'
+            : 'Limpieza total de tarjetas';
+
+      db.auditLogs.push({
+        id: `aud-${crypto.randomUUID().slice(0, 8)}`,
+        competitionId: targetCompetitionId,
+        action: `${targetLabel} (${player.name})`,
+        entityType: 'discipline',
+        entityId: player.id,
+        previousValue: `${beforeCounts.yellowCards} amarilla(s), ${beforeCounts.redCards} roja(s)`,
+        newValue: `${afterCounts.yellowCards} amarilla(s), ${afterCounts.redCards} roja(s)`,
+        reason:
+          typeof reason === 'string' && reason.trim()
+            ? reason.trim()
+            : 'Eliminación manual de tarjetas desde Panel Admin',
+        actorName: req.authUser!.name,
+        actorRole: 'admin',
+        createdAt: new Date().toISOString(),
+      });
+
+      await persistDb();
+      res.json({
+        ok: true,
+        removedCount: removedEvents.length,
+        yellowCards: afterCounts.yellowCards,
+        redCards: afterCounts.redCards,
+      });
     }
   );
 

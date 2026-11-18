@@ -277,6 +277,26 @@ export async function overrideDisciplineRequest(payload: {
   });
 }
 
+export async function deletePlayerCardsRequest(
+  playerId: string,
+  payload: {
+    competitionId: string;
+    cardType?: 'yellow_card' | 'red_card' | 'all';
+    eventId?: string;
+    reason?: string;
+  }
+) {
+  return apiFetch<{
+    ok: boolean;
+    removedCount: number;
+    yellowCards: number;
+    redCards: number;
+  }>(`/api/admin/players/${encodeURIComponent(playerId)}/cards`, {
+    method: 'DELETE',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function resetDemoDataRequest() {
   return apiFetch('/api/admin/reset-demo', {
     method: 'POST',

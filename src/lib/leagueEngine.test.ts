@@ -8,10 +8,12 @@ import {
   calculateStandings,
   calculateTopScorers,
   computeLiveMatchClock,
+  countPlayerCards,
   findNextAvailableDorsal,
   getTeamStarters,
   MAX_STARTERS,
   parseTransferTeamLabel,
+  removePlayerCardEvents,
   sanitizePublicEvents,
   selectFeaturedMatchdayMatches,
   toManaguaDateTimeParts,
@@ -901,6 +903,135 @@ test('Managua date/time helpers and validateMatchReschedule handle timezone and 
   assert.equal(valid.ok, true);
   assert.equal(valid.venue, 'Cancha El Remanso');
 });
+
+test('removePlayerCardEvents and countPlayerCards selectively remove yellow/red cards without touching goals or other players', () => {
+  const sampleEvents: MatchEvent[] = [
+    {
+      id: 'g-p1',
+      competitionId: 'c1',
+      matchId: 'm1',
+      teamId: 't1',
+      playerId: 'p1',
+      type: 'goal',
+      minute: 10,
+      visibility: 'public',
+      createdAt: '2026-11-01T15:10:00Z',
+      createdBy: 'Admin',
+    },
+    {
+      id: 'yc-p1-1',
+      competitionId: 'c1',
+      matchId: 'm1',
+      teamId: 't1',
+      playerId: 'p1',
+      type: 'yellow_card',
+      minute: 25,
+      visibility: 'public',
+      createdAt: '2026-11-01T15:25:00Z',
+      createdBy: 'Admin',
+    },
+    {
+      id: 'yc-p1-2',
+      competitionId: 'c1',
+      matchId: 'm2',
+      teamId: 't1',
+      playerId: 'p1',
+      type: 'yellow_card',
+      minute: 40,
+      visibility: 'public',
+      createdAt: '2026-11-08T15:40:00Z',
+      createdBy: 'Admin',
+    },
+    {
+      id: 'rc-p1-1',
+      competitionId: 'c1',
+      matchId: 'm2',
+      teamId: 't1',
+      playerId: 'p1',
+      type: 'red_card',
+      minute: 85,
+      visibility: 'public',
+      createdAt: '2026-11-08T16:25:00Z',
+      createdBy: 'Admin',
+    },
+    {
+      id: 'yc-p2-1',
+      competitionId: 'c1',
+      matchId: 'm1',
+      teamId: 't2',
+      playerId: 'p2',
+      type: 'yellow_card',
+      minute: 55,
+      visibility: 'public',
+      createdAt: '2026-11-01T15:55:00Z',
+      createdBy: 'Admin',
+    },
+  ];
+
+  assert.deepEqual(countPlayerCards(sampleEvents, 'c1', 'p1'), {
+    yellowCards: 2,
+    redCards: 1,
+  });
+
+  // Remove a single yellow card by eventId
+  const singleRes = removePlayerCardEvents(sampleEvents, {
+    competitionId: 'c1',
+    playerId: 'p1',
+    eventId: 'yc-p1-1',
+  });
+  assert.equal(singleRes.removedEvents.length, 1);
+  assert.deepEqual(countPlayerCards(singleRes.remainingEvents, 'c1', 'p1'), {
+    yellowCards: 1,
+    redCards: 1,
+  });
+  assert.equal(singleRes.remainingEvents.some((e) => e.id === 'g-p1'), true);
+
+  // Remove all red cards for p1 -> clears red suspension while keeping yellows & p2's yellow
+  const redRes = removePlayerCardEvents(singleRes.remainingEvents, {
+    competitionId: 'c1',
+    playerId: 'p1',
+    cardType: 'red_card',
+  });
+  assert.equal(redRes.removedEvents.length, 1);
+  assert.deepEqual(countPlayerCards(redRes.remainingEvents, 'c1', 'p1'), {
+    yellowCards: 1,
+    redCards: 0,
+  });
+
+  const summaryAfterRed = calculateDisciplineSummary(
+    players,
+    teams,
+    matches,
+    redRes.remainingEvents,
+    { yellowAccumulationLimit: 3, redCardSuspensionMatches: 2 }
+  );
+  const p1AfterRed = summaryAfterRed.find((r) => r.playerId === 'p1');
+  assert.ok(p1AfterRed);
+  assert.equal(p1AfterRed.isSuspended, false);
+  assert.equal(p1AfterRed.redCards, 0);
+  assert.equal(p1AfterRed.yellowCards, 1);
+
+  // Remove all remaining cards for p1 -> removes p1 from discipline, keeps goal & p2 card
+  const allRes = removePlayerCardEvents(sampleEvents, {
+    competitionId: 'c1',
+    playerId: 'p1',
+    cardType: 'all',
+  });
+  assert.equal(allRes.removedEvents.length, 3);
+  assert.equal(allRes.remainingEvents.some((e) => e.id === 'g-p1'), true);
+  assert.equal(allRes.remainingEvents.some((e) => e.id === 'yc-p2-1'), true);
+
+  const summaryAfterAll = calculateDisciplineSummary(
+    players,
+    teams,
+    matches,
+    allRes.remainingEvents,
+    { yellowAccumulationLimit: 3, redCardSuspensionMatches: 2 }
+  );
+  assert.equal(summaryAfterAll.some((r) => r.playerId === 'p1'), false);
+  assert.equal(summaryAfterAll.some((r) => r.playerId === 'p2'), true);
+});
+
 
 
 
